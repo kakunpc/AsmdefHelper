@@ -2,9 +2,11 @@
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEngine.UIElements;
 
 namespace AsmdefHelper.DependencyGraph.Editor {
     public class AsmdefGraphEditorWindow : EditorWindow {
+        private AsmdefGraphView _asmdefGraphView;
         [MenuItem("Window/Asmdef Helper/Open DependencyGraph", priority = 2000)]
         public static void Open() {
             GetWindow<AsmdefGraphEditorWindow>("Asmdef Dependency");
@@ -22,10 +24,24 @@ namespace AsmdefHelper.DependencyGraph.Editor {
                     );
             }
             // viewの作成
-            var graphView = new AsmdefGraphView(allDependencies) {
+            _asmdefGraphView = new AsmdefGraphView(allDependencies) {
                 style = { flexGrow = 1 }
             };
-            rootVisualElement.Add(graphView);
+            rootVisualElement.Add(_asmdefGraphView);
+            rootVisualElement.pickingMode = PickingMode.Position;  // ピッキングモード変更
+            rootVisualElement.AddManipulator(new ContextualMenuManipulator(OnContextMenuPopulate));
+        }
+
+        void Update() {
+            _asmdefGraphView.Sort(1);
+        }
+
+        void OnContextMenuPopulate(ContextualMenuPopulateEvent evt) {
+            evt.menu.AppendAction(
+                "Sort", // 項目名
+                _ => _asmdefGraphView.Sort(300), // 選択時の挙動
+                DropdownMenuAction.AlwaysEnabled // 選択可能かどうか
+            );
         }
     }
 }
